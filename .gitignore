@@ -1,0 +1,70 @@
+# Ignore build output
+bin/
+obj/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Auto-generated files
+Generated_Code/
+
+# Crash reports
+*.stackdump
+
+# VS Code files
+.vscode/
+
+# Rider files
+.idea/
+
+# Windows specific files
+Thumbs.db
+desktop.ini
+
+# Mac specific files
+.DS_Store
+
+# Logs
+*.log
+
+# NuGet packages
+packages/
+*.nupkg
+*.snupkg
+
+# Dotnet CLI
+**/project.lock.json
+**/project.fragment.lock.json
+
+# VS Code for Mac
+.vscode/
+
+# Rider and Resharper
+.idea/
+*.sln.iml
+
+# Azure Function artifacts
+local.settings.json
+
+# ASP.NET Scaffolding
+.scaffolding/
+
+# SQL Server files
+*.mdf
+*.ldf
+
+# DotNet Core
+.project/
+.resharper/
+.vscode/
+*.dotCover
+
+# Build artifacts
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.nuget.cache

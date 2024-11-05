@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Data;
+using System.Text.Json;
 using ComputerStore.Data;
 using ComputerStore.Models;
 using ComputerStore.Utils;
@@ -8,6 +9,8 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 class Program 
 {
@@ -15,7 +18,7 @@ class Program
 
     static void Main()
     {
-
+        _logger.LogInformation("Starting Application, trying to connect to the database");
         try{
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
@@ -23,45 +26,41 @@ class Program
                 .Build();
 
             DataContextDapper dataConextDapper = new(configuration);
-            DataContextEntity dataContextEntity = new(configuration);
 
-            _logger.LogInformation("Starting Application, trying to connect to the database");
+            // convert to camel case. This is not needed if we use Newtonsoft.Json
+            // JsonSerializerOptions options = new () { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+ 
+            string readFromJson = File.ReadAllText("Computers.json");
+            // IEnumerable<Computer>? computer = JsonSerializer.Deserialize<IEnumerable<Computer>>(readFromJson, options); // System.Text.Json
+            IEnumerable<Computer>? computer = JsonConvert.DeserializeObject<IEnumerable<Computer>>(readFromJson); // Newtonsoft.Json
 
 
-            Computer computer = new()
+            /**
+            * This is how we can serialize the object to json
+            * this is how its done with Newtonsoft 
+            */
+
+            JsonSerializerSettings settings = new ()
             {
-                Motherboard = "ZG4506",
-                CPUCores = 8,
-                HasWifi = true,
-                HasLTE = false,
-                VideoCard = "RTX 3090",
-                ReleaseDate = new DateTime(2024, 1, 1),
-                Price = 2000.99m
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
             };
 
-            // entity framework
-            dataContextEntity.Add(computer);
-            dataContextEntity.SaveChanges();
+            string serializedJson = JsonConvert.SerializeObject(computer, settings);
+            File.WriteAllText("computers.txt", serializedJson);
 
-            // Accessing the data using Entity framework
-
-            IEnumerable<Computer>? computersEntity = dataContextEntity.Computer?.ToList<Computer>();
-            if(computersEntity is not null)
+            // load all to Data base
+            if(computer is not null)
             {
-              
-                foreach (Computer c in computersEntity)
+                foreach(var c in computer)
                 {
-                    Console.WriteLine($"Motherboard: {c.Motherboard}");
-                    Console.WriteLine($"CPUCores: {c.CPUCores}");
-                    Console.WriteLine($"HasWifi: {c.HasWifi}");
-                    Console.WriteLine($"HasLTE: {c.HasLTE}");
-                    Console.WriteLine($"VideoCard: {c.VideoCard}");
-                    Console.WriteLine($"ReleaseDate: {c.ReleaseDate}");
-                    Console.WriteLine($"Price: {c.Price}");
-                    Console.WriteLine();
+                   string insertCommand = "INSERT INTO ComputerStoreAppSchema.Computer (Motherboard, CPUCores, HasWifi, HasLTE, VideoCard, ReleaseDate, Price) " +
+                       "VALUES (@Motherboard, @CPUCores, @HasWifi, @HasLTE, @VideoCard, @ReleaseDate, @Price); " +
+                       "SELECT CAST(SCOPE_IDENTITY() as int)";
+
+                    dataConextDapper.ExecuteSqlWithRowCount(insertCommand, c);
+
                 }
             }
-            
         }
         catch(SqlException ex)
         {

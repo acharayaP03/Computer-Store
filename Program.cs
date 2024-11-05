@@ -6,6 +6,7 @@ using ComputerStore.Models;
 using ComputerStore.Utils;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 class Program 
@@ -16,21 +17,26 @@ class Program
     {
 
         try{
-            DataContextDapper dataConextDapper = new();
-            DataContextEntity dataContextEntity = new();
+            IConfiguration configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appSettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
+            DataContextDapper dataConextDapper = new(configuration);
+            DataContextEntity dataContextEntity = new(configuration);
 
             _logger.LogInformation("Starting Application, trying to connect to the database");
 
 
             Computer computer = new()
             {
-                Motherboard = "ASUS",
+                Motherboard = "ZG4506",
                 CPUCores = 8,
                 HasWifi = true,
                 HasLTE = false,
-                VideoCard = "NVIDIA",
-                ReleaseDate = new DateTime(2020, 1, 1),
-                Price = 1500.99m
+                VideoCard = "RTX 3090",
+                ReleaseDate = new DateTime(2024, 1, 1),
+                Price = 2000.99m
             };
 
             // entity framework

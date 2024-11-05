@@ -1,6 +1,20 @@
 ﻿
 using System;
+using System.Data;
 using ComputerStore.Models;
+using Dapper;
+using Microsoft.Data.SqlClient;
+
+string connectionString = "Server=localhost;Database=ComputerStore;Trusted_Connection=True;TrustServerCertificate=True;";
+
+//Test if connection string is valid
+IDbConnection connection = new SqlConnection(connectionString);
+
+string sqlCommand = "SELECT GETDATE()";
+
+DateTime dateTimeNow = connection.QuerySingle<DateTime>(sqlCommand);
+
+Console.WriteLine($"Connection is valid. Current date and time is {dateTimeNow}");
 
 Computer computer = new Computer
 {

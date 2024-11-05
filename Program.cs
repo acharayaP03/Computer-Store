@@ -17,6 +17,8 @@ class Program
 
         try{
             DataContextDapper dataConextDapper = new();
+            DataContextEntity dataContextEntity = new();
+
             _logger.LogInformation("Starting Application, trying to connect to the database");
 
 
@@ -31,44 +33,27 @@ class Program
                 Price = 1500.99m
             };
 
-            string sqlCommand = "SELECT GETDATE()";
-            string insertCommand = "INSERT INTO ComputerStoreAppSchema.Computer (Motherboard, CPUCores, HasWifi, HasLTE, VideoCard, ReleaseDate, Price) " +
-                               "VALUES (@Motherboard, @CPUCores, @HasWifi, @HasLTE, @VideoCard, @ReleaseDate, @Price); " +
-                               "SELECT CAST(SCOPE_IDENTITY() as int)";
+            // entity framework
+            dataContextEntity.Add(computer);
+            dataContextEntity.SaveChanges();
 
-            DateTime dateTimeNow = dataConextDapper.LoadDataSingle<DateTime>(sqlCommand);
-            _logger.LogInformation($"Connection is valid. Current date and time is {dateTimeNow}");
-            
-            int result = dataConextDapper.ExecuteSqlWithRowCount(insertCommand, computer);
+            // Accessing the data using Entity framework
 
-            Console.WriteLine(insertCommand);
-            _logger.LogInformation($"Computer inserted with ID {result}");
-
-
-
-            string selectAllComputerCommand = @"
-                SELECT
-                    Computer.Motherboard,
-                    Computer.CPUCores,
-                    Computer.HasWifi,
-                    Computer.HasLTE,
-                    Computer.VideoCard,
-                    Computer.ReleaseDate,
-                    Computer.Price
-                FROM ComputerStoreAppSchema.Computer";
-
-            IEnumerable<Computer> computers = dataConextDapper.LoadData<Computer>(selectAllComputerCommand);
-            
-            foreach (Computer c in computers)
+            IEnumerable<Computer>? computersEntity = dataContextEntity.Computer?.ToList<Computer>();
+            if(computersEntity is not null)
             {
-                Console.WriteLine($"Motherboard: {c.Motherboard}");
-                Console.WriteLine($"CPUCores: {c.CPUCores}");
-                Console.WriteLine($"HasWifi: {c.HasWifi}");
-                Console.WriteLine($"HasLTE: {c.HasLTE}");
-                Console.WriteLine($"VideoCard: {c.VideoCard}");
-                Console.WriteLine($"ReleaseDate: {c.ReleaseDate}");
-                Console.WriteLine($"Price: {c.Price}");
-                Console.WriteLine();
+              
+                foreach (Computer c in computersEntity)
+                {
+                    Console.WriteLine($"Motherboard: {c.Motherboard}");
+                    Console.WriteLine($"CPUCores: {c.CPUCores}");
+                    Console.WriteLine($"HasWifi: {c.HasWifi}");
+                    Console.WriteLine($"HasLTE: {c.HasLTE}");
+                    Console.WriteLine($"VideoCard: {c.VideoCard}");
+                    Console.WriteLine($"ReleaseDate: {c.ReleaseDate}");
+                    Console.WriteLine($"Price: {c.Price}");
+                    Console.WriteLine();
+                }
             }
             
         }
